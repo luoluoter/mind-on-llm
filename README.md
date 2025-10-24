@@ -83,11 +83,21 @@ npm run dev
 
 ## 🔧 环境配置
 
-1. 复制 `.env.example` 到 `.env`
-2. 配置必要的环境变量：
-   - `OPENAI_API_KEY`：OpenAI API 密钥
-   - `PORT`：服务器端口
-   - 其他配置项...
+1. 进入 `server` 目录后复制示例文件：
+
+   ```bash
+   cd server
+   cp .env.example .env
+   ```
+
+2. 根据需求填写 `.env`：
+   - 设置 `LLM_PROVIDER=mock` 可直接使用内置示例数据，体验完整流程；
+   - 若使用 OpenAI，请填写 `OPENAI_API_KEY` 与可用模型名称；
+   - 若使用 Azure OpenAI，请设置 `AZURE_API_KEY`、`AZURE_ENDPOINT`、`AZURE_DEPLOYMENT_NAME` 与 `AZURE_API_VERSION`。
+
+3. 首次本地运行推荐保持 `LLM_PROVIDER=mock`，无需真实密钥即可完成前后端联调。
+
+> `server` 启动脚本会在未检测到 `.env` 时提示参考 `server/.env.example`。
 
 ## 📝 使用流程
 
