@@ -89,6 +89,14 @@ npm run dev
    - `PORT`：服务器端口
    - 其他配置项...
 
+如需在本地快速体验而不依赖任何外部 API，可将 `LLM_PROVIDER` 设置为 `mock`：
+
+```bash
+LLM_PROVIDER=mock
+```
+
+Mock 模式会返回预置的多模型示例数据，便于验证端到端流程。
+
 ## 📝 使用流程
 
 1. 在首页输入您的问题

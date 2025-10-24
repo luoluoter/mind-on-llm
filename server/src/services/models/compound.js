@@ -1,4 +1,5 @@
 import { getLLMClient } from '../llmAdapter.js';
+import { parseMockStructuredText } from './mockResponseParser.js';
 
 export async function analyzeCompoundModel(context) {
   const prompt = `
@@ -17,12 +18,13 @@ export async function analyzeCompoundModel(context) {
 
   const llm = getLLMClient();
   const response = await llm.chat(prompt);
-  
+  const parsed = parseMockStructuredText(response);
+
   return {
     model: '复利模型',
     applicable: true,
-    summary: response,
-    suggestions: [],
-    risks: []
+    summary: parsed?.summary || response,
+    suggestions: parsed?.suggestions || [],
+    risks: parsed?.risks || []
   };
-} 
+}

@@ -1,4 +1,5 @@
 import { getLLMClient } from '../llmAdapter.js';
+import { parseMockStructuredText } from './mockResponseParser.js';
 
 export async function analyzeGameTheoryModel(context) {
   const prompt = `
@@ -16,12 +17,13 @@ export async function analyzeGameTheoryModel(context) {
 
   const llm = getLLMClient();
   const response = await llm.chat(prompt);
-  
+  const parsed = parseMockStructuredText(response);
+
   return {
     model: '博弈论模型',
     applicable: true,
-    summary: response,
-    suggestions: [],
-    risks: []
+    summary: parsed?.summary || response,
+    suggestions: parsed?.suggestions || [],
+    risks: parsed?.risks || []
   };
-} 
+}

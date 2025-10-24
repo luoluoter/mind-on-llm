@@ -1,4 +1,5 @@
 import { getLLMClient } from '../llmAdapter.js';
+import { stripMockMarker } from './mockResponseParser.js';
 
 function extractMermaidCode(text) {
   const mermaidMatch = text.match(/```mermaid\n([\s\S]*?)```/);
@@ -28,11 +29,12 @@ B2 --> C3[创业失败<br>概率：70%<br>期望：-30万]
 
   const llm = getLLMClient();
   const response = await llm.chat(prompt);
-  
+  const cleanedResponse = stripMockMarker(response);
+
   return {
     model: '决策树模型',
     applicable: true,
-    mermaidCode: extractMermaidCode(response),
-    rawText: response
+    mermaidCode: extractMermaidCode(cleanedResponse),
+    rawText: cleanedResponse
   };
-} 
+}

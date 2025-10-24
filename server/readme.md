@@ -240,8 +240,8 @@ npm install
 创建 `.env` 文件并填入以下内容：
 
 ```env
-# 选择模型提供方：openai | azure
-LLM_PROVIDER=openai
+# 选择模型提供方：openai | azure | mock
+LLM_PROVIDER=mock
 
 # OpenAI
 OPENAI_API_KEY=sk-...
@@ -251,6 +251,8 @@ AZURE_API_KEY=...
 AZURE_ENDPOINT=https://xxx.openai.azure.com
 AZURE_DEPLOYMENT_NAME=gpt-4
 ```
+
+> 💡 将 `LLM_PROVIDER` 设置为 `mock` 时，服务会直接返回预置的多模型示例数据，适合在没有云端 API Key 的情况下快速验证后端接口与前端联调。
 
 ### 3️⃣ 启动本地服务
 
@@ -302,15 +304,10 @@ npm run dev
 ## 🔌 插件式大模型调用（`llmAdapter.js`）
 
 ```js
-// 自动选择调用 OpenAI 或 Azure 接口
-import { OpenAIClient } from './providers/openai.js';
-import { AzureClient } from './providers/azure.js';
+import { getLLMClient } from './services/llmAdapter.js';
 
-export const getLLMClient = () => {
-  const provider = process.env.LLM_PROVIDER;
-  if (provider === 'azure') return new AzureClient();
-  return new OpenAIClient();
-};
+// `llmAdapter` 会根据配置自动选择 OpenAI / Azure / Mock 客户端
+const client = getLLMClient();
 ```
 
 ---
