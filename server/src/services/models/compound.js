@@ -1,4 +1,5 @@
 import { getLLMClient } from '../llmAdapter.js';
+import { ensureArray, parseLLMResponse } from '../utils/responseParser.js';
 
 export async function analyzeCompoundModel(context) {
   const prompt = `
@@ -17,12 +18,18 @@ export async function analyzeCompoundModel(context) {
 
   const llm = getLLMClient();
   const response = await llm.chat(prompt);
-  
+  const structured = parseLLMResponse(response);
+
+  const summary = structured?.summary || response;
+  const suggestions = ensureArray(structured?.suggestions);
+  const risks = ensureArray(structured?.risks);
+
   return {
     model: '复利模型',
-    applicable: true,
-    summary: response,
-    suggestions: [],
-    risks: []
+    applicable: structured?.applicable ?? true,
+    summary,
+    suggestions,
+    risks,
+    coreInsight: structured?.coreInsight || summary.split('\n')[0] || summary
   };
-} 
+}

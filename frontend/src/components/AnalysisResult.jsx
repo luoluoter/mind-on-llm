@@ -45,8 +45,28 @@ export function AnalysisResult({ result, isLoading, error }) {
 
   if (!result) return null;
 
-  // 过滤掉决策树分析（因为已经有可视化）
-  const filteredModels = result.models_applied.filter((_, index) => index !== 2);
+  const filteredModels = result.models_applied || [];
+
+  const renderList = (items, emptyLabel) => {
+    if (!items || items.length === 0) {
+      return <p className="text-sm text-gray-400">{emptyLabel}</p>;
+    }
+
+    return (
+      <ul className="list-disc list-inside space-y-1 text-sm text-gray-600">
+        {items.map((item, idx) => (
+          <li key={idx}>{item}</li>
+        ))}
+      </ul>
+    );
+  };
+
+  const pickModelTitle = (type) => {
+    if (type?.includes('复利')) return '复利模型分析';
+    if (type?.includes('概率')) return '概率模型分析';
+    if (type?.includes('博弈')) return '博弈论分析';
+    return type || '模型分析';
+  };
 
   return (
     <div className="mt-8 space-y-6">
@@ -65,9 +85,14 @@ export function AnalysisResult({ result, isLoading, error }) {
                 </div>
                 <h3 className="text-lg font-medium text-gray-900">核心问题</h3>
               </div>
+              <p className="text-sm text-gray-500 mb-2">原始提问</p>
+              <p className="text-gray-700 text-sm mb-4 bg-white/70 border border-indigo-100 rounded-md p-3 shadow-inner">
+                {result.core_issue?.question || '未提供问题描述'}
+              </p>
+              <p className="text-sm text-gray-500 mb-2">模型聚合总结</p>
               <div className="prose prose-sm max-w-none text-gray-600">
                 <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                  {result.core_issue}
+                  {result.core_issue?.summary || '暂无摘要'}
                 </ReactMarkdown>
               </div>
             </div>
@@ -93,35 +118,72 @@ export function AnalysisResult({ result, isLoading, error }) {
 
             {/* 其他模型分析结果 */}
             {filteredModels.map((modelResult, index) => (
-              <div key={index} className="bg-gradient-to-br from-blue-50 to-white p-6 rounded-lg shadow-sm border border-blue-100">
+              <div
+                key={`${modelResult.type || 'model'}-${index}`}
+                className="bg-gradient-to-br from-blue-50 to-white p-6 rounded-lg shadow-sm border border-blue-100"
+              >
                 <div className="flex items-center mb-4">
                   <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center mr-3">
-                    {index === 0 ? (
-                      <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                      </svg>
-                    ) : (
-                      <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                      </svg>
-                    )}
+                    <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                    </svg>
                   </div>
                   <h3 className="text-lg font-medium text-gray-900">
-                    {index === 0 ? '复利模型分析' :
-                     index === 1 ? '概率模型分析' :
-                     '博弈论分析'}
+                    {pickModelTitle(modelResult.type)}
                   </h3>
                 </div>
                 <div className="prose prose-sm max-w-none text-gray-600">
                   <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                    {modelResult}
+                    {modelResult.summary || '暂无摘要'}
                   </ReactMarkdown>
+                </div>
+                <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
+                  <div>
+                    <h4 className="text-sm font-medium text-gray-700 mb-2">建议</h4>
+                    {renderList(modelResult.suggestions, '暂无具体建议')}
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-medium text-gray-700 mb-2">潜在风险</h4>
+                    {renderList(modelResult.risks, '暂无风险提示')}
+                  </div>
                 </div>
               </div>
             ))}
           </div>
         </div>
       </div>
+
+      {result.recommendations && (
+        <div className="bg-white shadow sm:rounded-lg">
+          <div className="px-4 py-5 sm:p-6">
+            <h2 className="text-lg font-medium text-gray-900 mb-4">综合建议</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="bg-indigo-50 border border-indigo-100 rounded-lg p-4">
+                <h3 className="text-sm font-medium text-indigo-800 mb-2">优先行动</h3>
+                <p className="text-sm text-gray-700">
+                  {result.recommendations.primary || '暂无主要建议'}
+                </p>
+              </div>
+              <div className="bg-blue-50 border border-blue-100 rounded-lg p-4">
+                <h3 className="text-sm font-medium text-blue-800 mb-2">备选方案</h3>
+                <p className="text-sm text-gray-700">
+                  {result.recommendations.secondary || '暂无次要建议'}
+                </p>
+              </div>
+              <div className="bg-rose-50 border border-rose-100 rounded-lg p-4">
+                <h3 className="text-sm font-medium text-rose-800 mb-2">关注风险</h3>
+                {renderList(result.recommendations.risks, '暂无风险提示')}
+              </div>
+            </div>
+            {result.recommendations.additional && result.recommendations.additional.length > 0 && (
+              <div className="mt-6">
+                <h3 className="text-sm font-medium text-gray-700 mb-2">补充建议</h3>
+                {renderList(result.recommendations.additional, '暂无补充建议')}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
-} 
+}

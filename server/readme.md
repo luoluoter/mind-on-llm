@@ -237,20 +237,18 @@ npm install
 
 ### 2️⃣ 配置环境变量
 
-创建 `.env` 文件并填入以下内容：
+1. 复制示例文件：
 
-```env
-# 选择模型提供方：openai | azure
-LLM_PROVIDER=openai
+   ```bash
+   cp .env.example .env
+   ```
 
-# OpenAI
-OPENAI_API_KEY=sk-...
+2. 根据实际情况填写：
+   - `LLM_PROVIDER=mock`：默认启用内置的示例模型回复，适合本地开发和演示；
+   - `LLM_PROVIDER=openai`：请补充 `OPENAI_API_KEY` 与 `OPENAI_MODEL`；
+   - `LLM_PROVIDER=azure`：需要配置 `AZURE_API_KEY`、`AZURE_ENDPOINT`、`AZURE_DEPLOYMENT_NAME` 与 `AZURE_API_VERSION`。
 
-# Azure
-AZURE_API_KEY=...
-AZURE_ENDPOINT=https://xxx.openai.azure.com
-AZURE_DEPLOYMENT_NAME=gpt-4
-```
+> 当 `.env` 缺失时，`npm run dev` 会在控制台提示参考 `.env.example`。
 
 ### 3️⃣ 启动本地服务
 

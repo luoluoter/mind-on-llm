@@ -25,28 +25,43 @@ router.post('/', async (req, res) => {
     ]);
 
     // 整合所有模型的结果，使用更结构化的格式
+    const aggregatedSuggestions = [
+      ...(compoundResult.suggestions || []),
+      ...(probabilityResult.suggestions || []),
+      ...(gameTheoryResult.suggestions || [])
+    ].filter(Boolean);
+
+    const aggregatedRisks = [
+      ...new Set(
+        [...(compoundResult.risks || []), ...(probabilityResult.risks || []), ...(gameTheoryResult.risks || [])].filter(Boolean)
+      )
+    ];
+
+    const coreSummary =
+      compoundResult.coreInsight || compoundResult.summary?.split('\n')[0] || '暂未生成核心问题摘要';
+
     const response = {
       core_issue: {
-        question: question,
-        summary: compoundResult.summary.split('\n')[0] // 使用复利模型的第一行作为核心问题总结
+        question,
+        summary: coreSummary
       },
       models_applied: [
         {
-          type: '复利模型',
+          type: compoundResult.model || '复利模型',
           summary: compoundResult.summary,
           applicable: compoundResult.applicable,
           suggestions: compoundResult.suggestions,
           risks: compoundResult.risks
         },
         {
-          type: '概率模型',
+          type: probabilityResult.model || '概率模型',
           summary: probabilityResult.summary,
           applicable: probabilityResult.applicable,
           suggestions: probabilityResult.suggestions,
           risks: probabilityResult.risks
         },
         {
-          type: '博弈论',
+          type: gameTheoryResult.model || '博弈论模型',
           summary: gameTheoryResult.summary,
           applicable: gameTheoryResult.applicable,
           suggestions: gameTheoryResult.suggestions,
@@ -55,9 +70,10 @@ router.post('/', async (req, res) => {
       ],
       visual_tree: decisionTreeResult.mermaidCode,
       recommendations: {
-        primary: compoundResult.suggestions[0] || '暂无主要建议',
-        secondary: probabilityResult.suggestions[0] || '暂无次要建议',
-        risks: [...new Set([...compoundResult.risks, ...probabilityResult.risks, ...gameTheoryResult.risks])]
+        primary: aggregatedSuggestions[0] || compoundResult.coreInsight || '暂无主要建议',
+        secondary: aggregatedSuggestions[1] || probabilityResult.recommendation || '暂无次要建议',
+        additional: aggregatedSuggestions.slice(2),
+        risks: aggregatedRisks
       }
     };
 
@@ -84,4 +100,4 @@ router.post('/', async (req, res) => {
   }
 });
 
-export default router; 
+export default router;

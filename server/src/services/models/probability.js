@@ -1,4 +1,5 @@
 import { getLLMClient } from '../llmAdapter.js';
+import { ensureArray, parseLLMResponse } from '../utils/responseParser.js';
 
 export async function analyzeProbabilityModel(context) {
   const prompt = `
@@ -16,12 +17,18 @@ export async function analyzeProbabilityModel(context) {
 
   const llm = getLLMClient();
   const response = await llm.chat(prompt);
-  
+  const structured = parseLLMResponse(response);
+
+  const summary = structured?.summary || response;
+  const suggestions = ensureArray(structured?.suggestions || structured?.recommendation);
+  const risks = ensureArray(structured?.risks);
+
   return {
     model: '概率模型',
-    applicable: true,
-    summary: response,
-    suggestions: [],
-    risks: []
+    applicable: structured?.applicable ?? true,
+    summary,
+    suggestions,
+    risks,
+    recommendation: structured?.recommendation || suggestions[0] || ''
   };
-} 
+}
